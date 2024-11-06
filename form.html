@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 50px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        h1 { text-align: center; color: #333; }
+        label { font-weight: bold; color: #333; }
+        input, textarea { width: 100%; margin: 10px 0; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { width: 100%; padding: 12px; background-color: #007BFF; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 20px; }
+        button:hover { background-color: #0056b3; }
+        
+        /* Preview Section Styling */
+        .preview { 
+            margin-top: 40px; 
+            background-color: #fff; 
+            padding: 20px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+            display: none; 
+            word-wrap: break-word; /* Text wrapping */
+            overflow-wrap: break-word; /* Text wrapping */
+        }
+        .preview img { 
+            width: 100px; 
+            height: 100px; 
+            border-radius: 7px; 
+            margin-right: 20px; 
+        }
+
+        .header { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 20px; 
+        }
+
+        .header div { 
+            flex: 1; 
+        }
+
+        .header h2 { 
+            margin: 0; 
+            font-size: 24px; 
+            font-weight: bold; 
+        }
+
+        .header p { 
+            margin: 5px 0; 
+            font-size: 14px; 
+            line-height: 1.6; 
+        }
+
+        .section { 
+            margin-bottom: 20px; 
+            word-wrap: break-word; /* Ensure sections handle text wrapping */
+            overflow-wrap: break-word; /* Ensure sections handle text wrapping */
+        }
+
+        .section h3 { 
+            font-size: 18px; 
+            margin-bottom: 5px; 
+        }
+
+        .section p { 
+            font-size: 14px; 
+            line-height: 1.6; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Resume Generator</h1>
+        <form id="resumeForm">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" placeholder="Your Name" required />
+
+            <label for="contact">Contact Number</label>
+            <input type="text" id="contact" placeholder="Contact Number" required />
+
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="Email Address" required />
+
+            <label for="profile">Professional Profile</label>
+            <textarea id="profile" placeholder="Briefly describe yourself" rows="4" required></textarea>
+
+            <label for="skills">Skills</label>
+            <textarea id="skills" placeholder="List your skills" rows="4" required></textarea>
+
+            <label for="education">Education</label>
+            <textarea id="education" placeholder="Education details" rows="4" required></textarea>
+
+            <label for="experience">Work Experience</label>
+            <textarea id="experience" placeholder="Describe your experience" rows="4" required></textarea>
+
+            <label for="imageUpload">Upload Profile Image</label>
+            <input type="file" id="imageUpload" accept="image/*" />
+
+            <button type="button" onclick="generatePreview()">Preview Resume</button>
+        </form>
+
+        <!-- Preview Section -->
+        <div id="previewSection" class="preview">
+            <h2>Resume Preview</h2>
+            <div id="previewContent"></div>
+            <button type="button" onclick="generatePDF()">Download PDF</button>
+        </div>
+    </div>
+
+    <script>
+        function generatePreview() {
+            // Get form values
+            const name = document.getElementById('name').value;
+            const contact = document.getElementById('contact').value;
+            const email = document.getElementById('email').value;
+            const profile = document.getElementById('profile').value;
+            const skills = document.getElementById('skills').value;
+            const education = document.getElementById('education').value;
+            const experience = document.getElementById('experience').value;
+            const imageUpload = document.getElementById('imageUpload').files[0];
+
+            let previewContent = '<div class="header">';
+            
+            // Add Profile Image
+            if (imageUpload) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgData = e.target.result;
+                    previewContent += `<img src="${imgData}" alt="Profile Image">`;
+                    previewContent += '<div>';
+                    previewContent += `<h2>${name}</h2>`;
+                    previewContent += `<p>${contact} | ${email}</p>`; // Updated to show contact and email on the same line
+                    previewContent += '</div>';
+                    previewContent += '</div>';
+                    generateResumeContent();
+                };
+                reader.readAsDataURL(imageUpload);
+            } else {
+                previewContent += '</div>';
+                generateResumeContent();
+            }
+
+            function generateResumeContent() {
+                // Add sections (Profile, Skills, Education, Experience)
+                previewContent += `<div class="section"><h3>Professional Profile</h3><p>${profile}</p></div>`;
+                previewContent += `<div class="section"><h3>Skills</h3><p>${skills}</p></div>`;
+                previewContent += `<div class="section"><h3>Education</h3><p>${education}</p></div>`;
+                previewContent += `<div class="section"><h3>Work Experience</h3><p>${experience}</p></div>`;
+                
+                // Display the preview
+                document.getElementById('previewContent').innerHTML = previewContent;
+                document.getElementById('previewSection').style.display = 'block';
+            }
+        }
+
+        async function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("p", "mm", "a4");
+
+    const name = document.getElementById('name').value;
+    const contact = document.getElementById('contact').value;
+    const email = document.getElementById('email').value;
+    const profile = document.getElementById('profile').value;
+    const skills = document.getElementById('skills').value;
+    const education = document.getElementById('education').value;
+    const experience = document.getElementById('experience').value;
+    const imageUpload = document.getElementById('imageUpload').files[0];
+
+    let yPosition = 20;
+    const leftMargin = 20;
+    const contentWidth = 170;
+    const rightColumnX = 70;
+
+    // Profile Image
+    if (imageUpload) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imgData = e.target.result;
+            doc.addImage(imgData, 'JPEG', leftMargin, yPosition, 40, 40);
+            addHeaderContent();
+        };
+        reader.readAsDataURL(imageUpload);
+    } else {
+        addHeaderContent();
+    }
+
+    function addHeaderContent() {
+        // Set font size for name to 48pt
+        doc.setFontSize(48);
+        doc.setFont("helvetica", "bold");
+        doc.text(name, rightColumnX, yPosition + 15);
+
+        // Set font size for contact and email (adjust according to your needs)
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${contact} | ${email}`, rightColumnX, yPosition + 30); // Contact and email on the same line
+
+        yPosition += 50; // Adjust yPosition after the header section
+
+        // Set header font size to 15px (15pt) for the section titles
+        doc.setFontSize(15); // Set header font size to 15px
+        addSection("Profile", profile);
+        addSection("Skills", skills);
+        addSection("Education", education);
+        addSection("Work Experience", experience);
+
+        doc.save("professional_resume.pdf");
+        alert("Your resume has been generated!");
+    }
+
+    function addSection(title, content) {
+        // Section Title with increased font size
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(15); // Increased header font size to 15pt
+        doc.text(title, leftMargin, yPosition);
+
+        // Full-width Line under section title
+        doc.setLineWidth(0.5);
+        doc.line(leftMargin, yPosition + 3, leftMargin + contentWidth, yPosition + 3);
+
+        yPosition += 10;
+
+        // Section Content with padding
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10); // Content font size (can adjust separately)
+        const contentLines = doc.splitTextToSize(content, contentWidth);
+        doc.text(contentLines, leftMargin, yPosition);
+
+        yPosition += doc.getTextDimensions(contentLines).h + 10; // Padding below each section
+    }
+}
+    </script>
+</body>
+</html>
